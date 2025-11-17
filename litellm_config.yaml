@@ -1,16 +1,30 @@
 general_settings:
-  database_connection_pool_limit: 20
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/DATABASE_URL  # PostgreSQL for usage tracking
 
 model_list:
-  - model_name: fake-openai-endpoint
+  # Gemini Flash via VertexAI (faster, cheaper)
+  - model_name: gemini-flash
     litellm_params:
-      model: openai/my-fake-model
-      api_key: my-fake-key
-      api_base: https://exampleopenaiendpoint-production.up.railway.app/
+      model: vertex_ai/gemini-2.5-flash
+      vertex_project: os.environ/VERTEX_PROJECT
+      vertex_location: os.environ/VERTEX_LOCATION
+
+  # Claude via VertexAI (if enabled in your project)
+  - model_name: claude-haiku
+    litellm_params:
+      model: vertex_ai/claude-3-5-haiku@20241022
+      vertex_project: os.environ/VERTEX_PROJECT
+      vertex_location: os.environ/VERTEX_LOCATION
 
 litellm_settings:
-  drop_params: True
   success_callback: ["prometheus"]
   failure_callback: ["prometheus"]
   service_callback: ["prometheus_system"]
+
+  # Enable detailed logging
+  json_logs: true
+
+  # Set request/response timeout
+  request_timeout: 600
 

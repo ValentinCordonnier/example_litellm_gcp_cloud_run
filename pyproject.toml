@@ -1,0 +1,11 @@
+[project]
+name = "example-litellm-gcp-cloud-run"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "google-adk>=1.18.0",
+    "google-genai>=1.49.0",
+    "litellm>=1.79.3",
+]

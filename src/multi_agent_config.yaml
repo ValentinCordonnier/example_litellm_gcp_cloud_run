@@ -1,0 +1,87 @@
+# Example: Configuring Multiple ADK Agents with Different Access Levels
+#
+# This shows how to configure your LiteLLM gateway to support multiple
+# agents with different permissions, rate limits, and cost controls.
+
+# Add this to your litellm_config.yaml to enable per-agent tracking
+
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  database_url: os.environ/DATABASE_URL
+  ui_username: os.environ/UI_USERNAME
+  ui_password: os.environ/UI_PASSWORD
+  store_model_in_db: true
+
+# Define teams/agents with different access
+router_settings:
+  enable_pre_call_checks: true
+
+model_list:
+  # Fast, cheap model for simple agents
+  - model_name: gemini-flash
+    litellm_params:
+      model: vertex_ai/gemini-1.5-flash
+      vertex_project: os.environ/VERTEX_PROJECT
+      vertex_location: os.environ/VERTEX_LOCATION
+    model_info:
+      mode: chat
+      supports_function_calling: true
+      supports_vision: true
+
+  # Powerful model for complex agents
+  - model_name: gemini-pro
+    litellm_params:
+      model: vertex_ai/gemini-1.5-pro
+      vertex_project: os.environ/VERTEX_PROJECT
+      vertex_location: os.environ/VERTEX_LOCATION
+    model_info:
+      mode: chat
+      supports_function_calling: true
+      supports_vision: true
+      supports_parallel_function_calling: true
+
+  # Claude for specialized tasks
+  - model_name: claude-sonnet
+    litellm_params:
+      model: vertex_ai/claude-3-5-sonnet@20240620
+      vertex_project: os.environ/VERTEX_PROJECT
+      vertex_location: os.environ/VERTEX_LOCATION
+    model_info:
+      mode: chat
+      supports_function_calling: true
+
+litellm_settings:
+  drop_params: true
+  success_callback: ["prometheus"]
+  failure_callback: ["prometheus"]
+  service_callback: ["prometheus_system"]
+  json_logs: true
+  request_timeout: 600
+
+  # Enable usage tracking by API key
+  enable_jwt_auth: false
+
+  # Set default rate limits (can override per key in UI)
+  default_max_parallel_requests: 10
+  default_tpm_limit: 1000000  # Tokens per minute
+  default_rpm_limit: 10000    # Requests per minute
+
+# Example: Create API keys in the LiteLLM UI for different agents:
+#
+# 1. Agent Team A (Customer Service):
+#    - Key: sk-team-a-...
+#    - Models: gemini-flash only
+#    - Rate limit: 1000 RPM
+#    - Budget: $100/month
+#
+# 2. Agent Team B (Data Analysis):
+#    - Key: sk-team-b-...
+#    - Models: gemini-pro, claude-sonnet
+#    - Rate limit: 500 RPM
+#    - Budget: $500/month
+#
+# 3. Agent Team C (Development):
+#    - Key: sk-team-c-...
+#    - Models: All models
+#    - Rate limit: 100 RPM
+#    - Budget: $50/month
